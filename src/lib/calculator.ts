@@ -104,12 +104,20 @@ export function calculateUserStats(
 	const daysSinceTracking =
 		sortedTrips.length > 0 ? differenceInDays(today, parseISO(sortedTrips[0].departureDate)) : null;
 
+	const hadClockReset = latestClockResetDate !== null;
+	const daysAsGreenCardHolderSinceReset = hadClockReset
+		? daysSinceResidenceStart
+		: daysAsGreenCardHolder;
+
 	return {
 		daysToEligibility,
 		eligibilityDate,
 		canApplyDate,
 		daysOutsideUS,
+		daysOutsideUSSinceReset: daysOutsideSinceResidenceStart,
 		daysAsGreenCardHolder,
+		daysAsGreenCardHolderSinceReset,
+		hadClockReset,
 		daysSinceTracking,
 		physicalPresenceRequired,
 		physicalPresenceMet,

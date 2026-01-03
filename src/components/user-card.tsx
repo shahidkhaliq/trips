@@ -96,10 +96,22 @@ export function UserCard({ user }: UserCardProps) {
 						</Avatar>
 						<div>
 							<CardTitle className="text-xl">{user.name}</CardTitle>
-							<p className="text-sm text-muted-foreground">
-								{user.citizenshipTrack === "5-year" ? "5-Year Track" : "3-Year Track"} &middot; GC:{" "}
-								{format(parseISO(user.greenCardDate), "MMM d, yyyy")}
-							</p>
+							<div className="mt-1 flex flex-wrap items-center gap-2">
+								<span
+									className={cn(
+										"inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+										user.citizenshipTrack === "5-year"
+											? "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300"
+											: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
+									)}
+								>
+									{user.citizenshipTrack === "5-year" ? "5-Year" : "3-Year"}
+								</span>
+								<span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+									<Calendar className="h-3 w-3" />
+									{format(parseISO(user.greenCardDate), "MMM d, yyyy")}
+								</span>
+							</div>
 						</div>
 					</div>
 					<div className="flex items-center gap-1">
@@ -154,11 +166,15 @@ export function UserCard({ user }: UserCardProps) {
 						value={format(stats.canApplyDate, "MMM d, yyyy")}
 						highlight={stats.canApplyDate <= new Date()}
 					/>
-					<StatItem icon={Plane} label="Days Outside US" value={stats.daysOutsideUS.toString()} />
+					<StatItem
+						icon={Plane}
+						label="Days Outside US"
+						value={stats.daysOutsideUSSinceReset.toString()}
+					/>
 					<StatItem
 						icon={MapPin}
-						label="Days as GC Holder"
-						value={stats.daysAsGreenCardHolder.toString()}
+						label="Days Inside US"
+						value={stats.physicalPresenceMet.toString()}
 					/>
 				</div>
 
@@ -301,10 +317,11 @@ interface StatItemProps {
 	icon: React.ComponentType<{ className?: string }>;
 	label: string;
 	value: string;
+	subValue?: string;
 	highlight?: boolean;
 }
 
-function StatItem({ icon: Icon, label, value, highlight }: StatItemProps) {
+function StatItem({ icon: Icon, label, value, subValue, highlight }: StatItemProps) {
 	return (
 		<div
 			className={cn(
@@ -316,11 +333,12 @@ function StatItem({ icon: Icon, label, value, highlight }: StatItemProps) {
 				<Icon className="h-4 w-4 shrink-0" />
 				<span className="text-xs">{label}</span>
 			</div>
-			<p
-				className={cn("mt-1 font-semibold", highlight && "text-emerald-700 dark:text-emerald-300")}
-			>
-				{value}
-			</p>
+			<div className="mt-1 flex items-baseline gap-2">
+				<p className={cn("font-semibold", highlight && "text-emerald-700 dark:text-emerald-300")}>
+					{value}
+				</p>
+				{subValue && <span className="text-xs text-muted-foreground">{subValue}</span>}
+			</div>
 		</div>
 	);
 }

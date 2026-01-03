@@ -25,7 +25,10 @@ export interface UserStats {
 	eligibilityDate: Date;
 	canApplyDate: Date;
 	daysOutsideUS: number;
+	daysOutsideUSSinceReset: number;
 	daysAsGreenCardHolder: number;
+	daysAsGreenCardHolderSinceReset: number;
+	hadClockReset: boolean;
 	daysSinceTracking: number | null;
 	physicalPresenceRequired: number;
 	physicalPresenceMet: number;
