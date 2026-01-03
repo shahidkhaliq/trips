@@ -51,3 +51,18 @@ export interface ActivityLogItem {
 	details: string | null;
 	createdAt: string | null;
 }
+
+export interface UserExport {
+	name: string;
+	avatar: string | null;
+	greenCardDate: string;
+	citizenshipTrack: CitizenshipTrack;
+	trips: TripExport[];
+}
+
+export interface TripExport {
+	departureDate: string;
+	returnDate: string;
+	destination: string;
+	purpose: string | null;
+}

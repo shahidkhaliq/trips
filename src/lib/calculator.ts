@@ -136,9 +136,13 @@ export function formatDaysRemaining(days: number): string {
 		if (remainingDays === 0) return `${months} month${months > 1 ? "s" : ""}`;
 		return `${months} month${months > 1 ? "s" : ""}, ${remainingDays} day${remainingDays > 1 ? "s" : ""}`;
 	}
-	const years = Math.floor(days / 365);
+	let years = Math.floor(days / 365);
 	const remainingDays = days % 365;
-	const months = Math.floor(remainingDays / 30);
+	let months = Math.floor(remainingDays / 30);
+	if (months >= 12) {
+		years += 1;
+		months = 0;
+	}
 	if (months === 0) return `${years} year${years > 1 ? "s" : ""}`;
 	return `${years} year${years > 1 ? "s" : ""}, ${months} month${months > 1 ? "s" : ""}`;
 }

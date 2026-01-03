@@ -2,11 +2,18 @@ import { Users } from "lucide-react";
 import { NewUserModal } from "@/components/new-user-modal";
 import { UserCard } from "@/components/user-card";
 import { getUsers } from "@/lib/actions/users";
+import { calculateUserStats } from "@/lib/calculator";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
 	const users = await getUsers();
+
+	const sortedUsers = [...users].sort((a, b) => {
+		const statsA = calculateUserStats(a.greenCardDate, a.citizenshipTrack, a.trips);
+		const statsB = calculateUserStats(b.greenCardDate, b.citizenshipTrack, b.trips);
+		return statsA.daysToEligibility - statsB.daysToEligibility;
+	});
 
 	return (
 		<div className="container mx-auto px-4 py-8">
@@ -20,7 +27,7 @@ export default async function HomePage() {
 				<NewUserModal />
 			</div>
 
-			{users.length === 0 ? (
+			{sortedUsers.length === 0 ? (
 				<div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16">
 					<div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
 						<Users className="h-8 w-8 text-muted-foreground" />
@@ -34,9 +41,9 @@ export default async function HomePage() {
 					</div>
 				</div>
 			) : (
-				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-					{users.map((user) => (
-						<UserCard key={user.id} user={user} />
+				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+					{sortedUsers.map((user) => (
+						<UserCard key={user.id} user={user} allUsers={users} />
 					))}
 				</div>
 			)}

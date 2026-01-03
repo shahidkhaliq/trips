@@ -50,6 +50,95 @@ export async function createTrip(
 	}
 }
 
+export async function updateTrip(
+	tripId: number,
+	departureDate: string,
+	returnDate: string,
+	destination: string,
+	purpose?: string
+): Promise<{ success: boolean; error?: string }> {
+	try {
+		const trip = await db.select().from(trips).where(eq(trips.id, tripId));
+		if (!trip.length) {
+			return { success: false, error: "Trip not found" };
+		}
+
+		const user = await db.select().from(users).where(eq(users.id, trip[0].userId));
+		const userName = user.length ? user[0].name : "Unknown user";
+
+		await db
+			.update(trips)
+			.set({
+				departureDate,
+				returnDate,
+				destination,
+				purpose: purpose || null,
+			})
+			.where(eq(trips.id, tripId));
+
+		const depDate = format(new Date(departureDate), "MMM d, yyyy");
+		const retDate = format(new Date(returnDate), "MMM d, yyyy");
+
+		await db.insert(activityLog).values({
+			action: "updated",
+			entityType: "trip",
+			entityId: tripId,
+			details: `Updated trip for ${userName}: ${destination} (${depDate} - ${retDate})`,
+		});
+
+		revalidatePath("/");
+		return { success: true };
+	} catch (error) {
+		console.error("Failed to update trip:", error);
+		return { success: false, error: "Failed to update trip" };
+	}
+}
+
+export async function copyTrip(
+	tripId: number,
+	targetUserId: number
+): Promise<{ success: boolean; newTripId?: number; error?: string }> {
+	try {
+		const trip = await db.select().from(trips).where(eq(trips.id, tripId));
+		if (!trip.length) {
+			return { success: false, error: "Trip not found" };
+		}
+
+		const targetUser = await db.select().from(users).where(eq(users.id, targetUserId));
+		if (!targetUser.length) {
+			return { success: false, error: "Target user not found" };
+		}
+
+		const result = await db
+			.insert(trips)
+			.values({
+				userId: targetUserId,
+				departureDate: trip[0].departureDate,
+				returnDate: trip[0].returnDate,
+				destination: trip[0].destination,
+				purpose: trip[0].purpose,
+			})
+			.returning({ id: trips.id });
+
+		const newTripId = result[0].id;
+		const depDate = format(new Date(trip[0].departureDate), "MMM d, yyyy");
+		const retDate = format(new Date(trip[0].returnDate), "MMM d, yyyy");
+
+		await db.insert(activityLog).values({
+			action: "copied",
+			entityType: "trip",
+			entityId: newTripId,
+			details: `Copied trip to ${targetUser[0].name}: ${trip[0].destination} (${depDate} - ${retDate})`,
+		});
+
+		revalidatePath("/");
+		return { success: true, newTripId };
+	} catch (error) {
+		console.error("Failed to copy trip:", error);
+		return { success: false, error: "Failed to copy trip" };
+	}
+}
+
 export async function deleteTrip(tripId: number): Promise<{ success: boolean; error?: string }> {
 	try {
 		const trip = await db.select().from(trips).where(eq(trips.id, tripId));

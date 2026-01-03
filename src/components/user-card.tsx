@@ -5,6 +5,8 @@ import {
 	Calendar,
 	ChevronDown,
 	Clock,
+	Copy,
+	Download,
 	Globe,
 	MapPin,
 	Plane,
@@ -15,6 +17,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AddTripModal } from "@/components/add-trip-modal";
+import { EditTripModal } from "@/components/edit-trip-modal";
 import { EditUserModal } from "@/components/edit-user-modal";
 import {
 	AlertDialog,
@@ -31,14 +34,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { deleteTrip } from "@/lib/actions/trips";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { copyTrip, deleteTrip } from "@/lib/actions/trips";
 import { deleteUser } from "@/lib/actions/users";
 import { calculateUserStats, formatDaysRemaining } from "@/lib/calculator";
-import type { UserWithTrips } from "@/lib/types";
+import type { UserExport, UserWithTrips } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface UserCardProps {
 	user: UserWithTrips;
+	allUsers: UserWithTrips[];
 }
 
 function getInitials(name: string): string {
@@ -50,10 +62,21 @@ function getInitials(name: string): string {
 		.slice(0, 2);
 }
 
-export function UserCard({ user }: UserCardProps) {
+export function UserCard({ user, allUsers }: UserCardProps) {
 	const [isTripsOpen, setIsTripsOpen] = useState(false);
 	const [deletingUser, setDeletingUser] = useState(false);
 	const [deletingTripId, setDeletingTripId] = useState<number | null>(null);
+	const [copyingTripId, setCopyingTripId] = useState<number | null>(null);
+	const [copyDialogOpen, setCopyDialogOpen] = useState<number | null>(null);
+
+	const otherUsers = allUsers.filter((u) => u.id !== user.id);
+
+	const handleCopyTrip = async (tripId: number, targetUserId: number) => {
+		setCopyingTripId(tripId);
+		await copyTrip(tripId, targetUserId);
+		setCopyingTripId(null);
+		setCopyDialogOpen(null);
+	};
 
 	const stats = calculateUserStats(user.greenCardDate, user.citizenshipTrack, user.trips);
 
@@ -61,6 +84,31 @@ export function UserCard({ user }: UserCardProps) {
 		setDeletingUser(true);
 		await deleteUser(user.id);
 		setDeletingUser(false);
+	};
+
+	const handleExport = () => {
+		const exportData: UserExport = {
+			name: user.name,
+			avatar: user.avatar,
+			greenCardDate: user.greenCardDate,
+			citizenshipTrack: user.citizenshipTrack,
+			trips: user.trips.map((trip) => ({
+				departureDate: trip.departureDate,
+				returnDate: trip.returnDate,
+				destination: trip.destination,
+				purpose: trip.purpose,
+			})),
+		};
+
+		const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement("a");
+		link.href = url;
+		link.download = `${user.name.toLowerCase().replace(/\s+/g, "-")}-trips.json`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
 	};
 
 	const handleDeleteTrip = async (tripId: number) => {
@@ -89,7 +137,13 @@ export function UserCard({ user }: UserCardProps) {
 				<div className="flex items-start justify-between gap-3">
 					<div className="flex items-start gap-3">
 						<Avatar className="h-12 w-12 shrink-0">
-							<AvatarImage src={user.avatar || undefined} alt={user.name} />
+							<AvatarImage
+								src={
+									user.avatar ||
+									`https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(user.name)}`
+								}
+								alt={user.name}
+							/>
 							<AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
 								{getInitials(user.name)}
 							</AvatarFallback>
@@ -116,6 +170,15 @@ export function UserCard({ user }: UserCardProps) {
 					</div>
 					<div className="flex items-center gap-1">
 						<EditUserModal user={user} />
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-8 w-8 text-muted-foreground hover:text-foreground"
+							onClick={handleExport}
+							title="Export user data as JSON"
+						>
+							<Download className="h-4 w-4" />
+						</Button>
 						<AlertDialog>
 							<AlertDialogTrigger asChild>
 								<Button
@@ -220,11 +283,12 @@ export function UserCard({ user }: UserCardProps) {
 											parseISO(b.departureDate).getTime() - parseISO(a.departureDate).getTime()
 									)
 									.map((trip, index) => {
-										const tripDays = Math.ceil(
+										const tripSpan = Math.ceil(
 											(parseISO(trip.returnDate).getTime() -
 												parseISO(trip.departureDate).getTime()) /
 												(1000 * 60 * 60 * 24)
 										);
+										const tripDays = Math.max(0, tripSpan - 1);
 										const isLast = index === user.trips.length - 1;
 										const isClockReset = tripDays >= 180;
 
@@ -246,7 +310,7 @@ export function UserCard({ user }: UserCardProps) {
 																	"inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
 																	isClockReset
 																		? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
-																		: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+																		: "bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
 																)}
 															>
 																{isClockReset && <RotateCcw className="h-3 w-3" />}
@@ -269,37 +333,78 @@ export function UserCard({ user }: UserCardProps) {
 															</p>
 														)}
 													</div>
-													<AlertDialog>
-														<AlertDialogTrigger asChild>
-															<Button
-																variant="ghost"
-																size="icon"
-																className="h-7 w-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
+													<div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+														<EditTripModal trip={trip} />
+														{otherUsers.length > 0 && (
+															<Dialog
+																open={copyDialogOpen === trip.id}
+																onOpenChange={(open) => setCopyDialogOpen(open ? trip.id : null)}
 															>
-																<Trash2 className="h-3.5 w-3.5" />
-															</Button>
-														</AlertDialogTrigger>
-														<AlertDialogContent>
-															<AlertDialogHeader>
-																<AlertDialogTitle>Delete this trip?</AlertDialogTitle>
-																<AlertDialogDescription>
-																	This will remove the trip to {trip.destination} from{" "}
-																	{format(parseISO(trip.departureDate), "MMM d, yyyy")} -{" "}
-																	{format(parseISO(trip.returnDate), "MMM d, yyyy")}.
-																</AlertDialogDescription>
-															</AlertDialogHeader>
-															<AlertDialogFooter>
-																<AlertDialogCancel>Cancel</AlertDialogCancel>
-																<AlertDialogAction
-																	onClick={() => handleDeleteTrip(trip.id)}
-																	disabled={deletingTripId === trip.id}
-																	className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+																<DialogTrigger asChild>
+																	<Button
+																		variant="ghost"
+																		size="icon"
+																		className="h-7 w-7"
+																		disabled={copyingTripId === trip.id}
+																	>
+																		<Copy className="h-3.5 w-3.5" />
+																	</Button>
+																</DialogTrigger>
+																<DialogContent className="sm:max-w-sm">
+																	<DialogHeader>
+																		<DialogTitle>Copy trip</DialogTitle>
+																		<DialogDescription>
+																			Copy this trip to {trip.destination} to another user.
+																		</DialogDescription>
+																	</DialogHeader>
+																	<div className="flex flex-col gap-2">
+																		{otherUsers.map((u) => (
+																			<Button
+																				key={u.id}
+																				variant="outline"
+																				className="justify-start"
+																				disabled={copyingTripId === trip.id}
+																				onClick={() => handleCopyTrip(trip.id, u.id)}
+																			>
+																				{copyingTripId === trip.id ? "Copying..." : u.name}
+																			</Button>
+																		))}
+																	</div>
+																</DialogContent>
+															</Dialog>
+														)}
+														<AlertDialog>
+															<AlertDialogTrigger asChild>
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	className="h-7 w-7 hover:text-destructive"
 																>
-																	{deletingTripId === trip.id ? "Deleting..." : "Delete"}
-																</AlertDialogAction>
-															</AlertDialogFooter>
-														</AlertDialogContent>
-													</AlertDialog>
+																	<Trash2 className="h-3.5 w-3.5" />
+																</Button>
+															</AlertDialogTrigger>
+															<AlertDialogContent>
+																<AlertDialogHeader>
+																	<AlertDialogTitle>Delete this trip?</AlertDialogTitle>
+																	<AlertDialogDescription>
+																		This will remove the trip to {trip.destination} from{" "}
+																		{format(parseISO(trip.departureDate), "MMM d, yyyy")} -{" "}
+																		{format(parseISO(trip.returnDate), "MMM d, yyyy")}.
+																	</AlertDialogDescription>
+																</AlertDialogHeader>
+																<AlertDialogFooter>
+																	<AlertDialogCancel>Cancel</AlertDialogCancel>
+																	<AlertDialogAction
+																		onClick={() => handleDeleteTrip(trip.id)}
+																		disabled={deletingTripId === trip.id}
+																		className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+																	>
+																		{deletingTripId === trip.id ? "Deleting..." : "Delete"}
+																	</AlertDialogAction>
+																</AlertDialogFooter>
+															</AlertDialogContent>
+														</AlertDialog>
+													</div>
 												</div>
 											</div>
 										);

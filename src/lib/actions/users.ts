@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { activityLog, trips, users } from "@/db/schema";
-import type { CitizenshipTrack, UserWithTrips } from "@/lib/types";
+import type { CitizenshipTrack, UserExport, UserWithTrips } from "@/lib/types";
 
 export async function getUsers(): Promise<UserWithTrips[]> {
 	const allUsers = await db.select().from(users).orderBy(users.name);
@@ -128,5 +128,59 @@ export async function deleteUser(userId: number): Promise<{ success: boolean; er
 	} catch (error) {
 		console.error("Failed to delete user:", error);
 		return { success: false, error: "Failed to delete user" };
+	}
+}
+
+export async function importUserWithTrips(
+	data: UserExport
+): Promise<{ success: boolean; userId?: number; error?: string }> {
+	try {
+		if (!data.name || !data.greenCardDate || !data.citizenshipTrack) {
+			return { success: false, error: "Missing required user fields" };
+		}
+
+		if (!["5-year", "3-year"].includes(data.citizenshipTrack)) {
+			return { success: false, error: "Invalid citizenship track" };
+		}
+
+		const result = await db
+			.insert(users)
+			.values({
+				name: data.name,
+				avatar: data.avatar || null,
+				greenCardDate: data.greenCardDate,
+				citizenshipTrack: data.citizenshipTrack,
+			})
+			.returning({ id: users.id });
+
+		const userId = result[0].id;
+
+		if (data.trips && data.trips.length > 0) {
+			for (const trip of data.trips) {
+				if (!trip.departureDate || !trip.returnDate || !trip.destination) {
+					continue;
+				}
+				await db.insert(trips).values({
+					userId,
+					departureDate: trip.departureDate,
+					returnDate: trip.returnDate,
+					destination: trip.destination,
+					purpose: trip.purpose || null,
+				});
+			}
+		}
+
+		await db.insert(activityLog).values({
+			action: "imported",
+			entityType: "user",
+			entityId: userId,
+			details: `Imported user: ${data.name} with ${data.trips?.length || 0} trips`,
+		});
+
+		revalidatePath("/");
+		return { success: true, userId };
+	} catch (error) {
+		console.error("Failed to import user:", error);
+		return { success: false, error: "Failed to import user" };
 	}
 }
