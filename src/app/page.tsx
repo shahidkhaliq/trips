@@ -3,6 +3,8 @@ import { NewUserModal } from "@/components/new-user-modal";
 import { UserCard } from "@/components/user-card";
 import { getUsers } from "@/lib/actions/users";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
 	const users = await getUsers();
 

@@ -3,6 +3,8 @@ import { History, PlaneTakeoff, Trash2, UserPlus } from "lucide-react";
 import { getActivityLog } from "@/lib/actions/activity";
 import { cn } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export default async function HistoryPage() {
 	const activities = await getActivityLog();
 
