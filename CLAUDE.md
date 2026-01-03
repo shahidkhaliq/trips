@@ -29,7 +29,6 @@ bun run lint:fix         # Auto-fix linting issues
 bun run format           # Format code with Biome
 
 # Docker
-bun run docker:dev       # Start development container
 bun run docker:prod      # Start production container
 ```
 

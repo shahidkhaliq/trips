@@ -1,5 +1,7 @@
 # Trips
 
+[![Tests](https://github.com/shahidkhaliq/trips/actions/workflows/test.yml/badge.svg)](https://github.com/shahidkhaliq/trips/actions/workflows/test.yml)
+
 A modern Next.js application with React 19, shadcn/ui, and comprehensive tooling.
 
 ## Tech Stack

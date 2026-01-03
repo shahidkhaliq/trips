@@ -6,28 +6,8 @@
 FROM oven/bun:1 AS base
 WORKDIR /app
 
-# Install dependencies
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
-
-# ============================================
-# Development stage - Hot reload
-# ============================================
-FROM base AS development
-WORKDIR /app
-
-# Copy all source files
-COPY . .
-
-# Expose port
-EXPOSE 3000
-
-# Set environment
-ENV NODE_ENV=development
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# Start dev server
-CMD ["bun", "run", "dev"]
 
 # ============================================
 # Builder stage - Build production bundle
