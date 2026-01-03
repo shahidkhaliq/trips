@@ -3,8 +3,11 @@
 # ============================================
 # Base stage - Install dependencies
 # ============================================
-FROM oven/bun:1 AS base
+FROM node:20-slim AS base
 WORKDIR /app
+
+# Install bun for faster installs
+RUN npm install -g bun
 
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
@@ -23,12 +26,12 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build the application
-RUN bun run build
+RUN npm run build
 
 # ============================================
 # Production stage - Minimal runtime
 # ============================================
-FROM oven/bun:1-slim AS production
+FROM node:20-slim AS production
 WORKDIR /app
 
 # Set production environment
@@ -44,6 +47,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Create data directory for SQLite
+RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+
 # Switch to non-root user
 USER nextjs
 
@@ -54,5 +60,4 @@ EXPOSE 3000
 ENV HOSTNAME="0.0.0.0"
 
 # Start server
-CMD ["bun", "server.js"]
-
+CMD ["node", "server.js"]

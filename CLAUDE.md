@@ -20,8 +20,6 @@ bun run start            # Start production server
 bun run test             # Run unit tests with Vitest
 bun run test -- --watch  # Run tests in watch mode
 bun run test:ui          # Run tests with Vitest UI
-bun run test:e2e         # Run E2E tests with Playwright
-bun run test:e2e:ui      # Run E2E tests with Playwright UI
 
 # Linting & Formatting
 bun run lint             # Check code with Biome
@@ -37,7 +35,7 @@ bun run docker:prod      # Start production container
 - **App Router**: All pages are in `src/app/` using Next.js App Router
 - **Components**: Reusable components in `src/components/`, shadcn/ui components in `src/components/ui/`
 - **Utilities**: Shared utilities in `src/lib/`
-- **Tests**: Unit tests in `tests/unit/`, E2E tests in `tests/e2e/`
+- **Tests**: Unit tests in `tests/unit/`
 
 ## Code Style
 
@@ -54,6 +52,5 @@ bunx shadcn@latest add [component-name]
 ## Testing Conventions
 
 - Unit tests use Vitest + React Testing Library
-- E2E tests use Playwright
-- Test files: `*.test.tsx` for unit, `*.spec.ts` for E2E
+- Test files: `*.test.tsx` or `*.test.ts`
 

@@ -12,8 +12,7 @@ A modern Next.js application with React 19, shadcn/ui, and comprehensive tooling
 - **UI Components**: shadcn/ui (New York style)
 - **Styling**: Tailwind CSS v4
 - **Linting/Formatting**: Biome
-- **Unit Testing**: Vitest + React Testing Library
-- **E2E Testing**: Playwright
+- **Testing**: Vitest + React Testing Library
 - **Containerization**: Docker with multi-stage builds
 
 ## Getting Started
@@ -47,14 +46,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `bun run format` | Format code with Biome |
 | `bun run test` | Run unit tests with Vitest |
 | `bun run test:ui` | Run unit tests with Vitest UI |
-| `bun run test:e2e` | Run E2E tests with Playwright |
-| `bun run test:e2e:ui` | Run E2E tests with Playwright UI |
 | `bun run docker:dev` | Start development in Docker |
 | `bun run docker:prod` | Start production in Docker |
 
 ## Testing
-
-### Unit Tests
 
 ```bash
 # Run tests
@@ -68,19 +63,6 @@ bun run test:ui
 
 # Run with coverage
 bun run test -- --coverage
-```
-
-### E2E Tests
-
-```bash
-# Run all E2E tests
-bun run test:e2e
-
-# Run E2E tests with UI
-bun run test:e2e:ui
-
-# Run specific test file
-bun run test:e2e -- tests/e2e/home.spec.ts
 ```
 
 ## Docker
@@ -126,14 +108,12 @@ trips/
 │   └── lib/
 │       └── utils.ts            # Utility functions
 ├── tests/
-│   ├── unit/                   # Vitest unit tests
-│   └── e2e/                    # Playwright E2E tests
+│   └── unit/                   # Vitest unit tests
 ├── docker/
 │   ├── Dockerfile              # Multi-stage Docker build
 │   └── docker-compose.yml      # Docker Compose services
 ├── biome.json                  # Biome configuration
 ├── vitest.config.ts            # Vitest configuration
-├── playwright.config.ts        # Playwright configuration
 └── components.json             # shadcn/ui configuration
 ```
 
