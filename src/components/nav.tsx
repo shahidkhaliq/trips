@@ -22,9 +22,7 @@ export function Nav() {
 						href="/"
 						className={cn(
 							"relative px-4 py-1.5 text-sm transition-colors",
-							pathname === "/"
-								? "text-foreground"
-								: "text-muted-foreground hover:text-foreground"
+							pathname === "/" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
 						)}
 					>
 						Dashboard

@@ -104,11 +104,7 @@ describe("calculateUserStats", () => {
 
 		it("subtracts trip days from physical presence", () => {
 			const greenCardDate = formatDate(subDays(TODAY, 100));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 50)),
-				formatDate(subDays(TODAY, 40))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 50)), formatDate(subDays(TODAY, 40)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.daysOutsideUS).toBe(9);
@@ -117,11 +113,7 @@ describe("calculateUserStats", () => {
 
 		it("counts trip days correctly (departure and return days count as in US)", () => {
 			const greenCardDate = formatDate(subDays(TODAY, 100));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 10)),
-				formatDate(subDays(TODAY, 5))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 10)), formatDate(subDays(TODAY, 5)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.daysOutsideUS).toBe(4);
@@ -144,11 +136,7 @@ describe("calculateUserStats", () => {
 	describe("Continuity Warning Triggers", () => {
 		it("does not warn for trip of exactly 179 days", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 2));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 200)),
-				formatDate(subDays(TODAY, 21))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 200)), formatDate(subDays(TODAY, 21)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.hasWarnings).toBe(false);
@@ -157,11 +145,7 @@ describe("calculateUserStats", () => {
 
 		it("warns for trip of exactly 180 days with continuity-risk", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 2));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 200)),
-				formatDate(subDays(TODAY, 20))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 200)), formatDate(subDays(TODAY, 20)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.hasWarnings).toBe(true);
@@ -172,11 +156,7 @@ describe("calculateUserStats", () => {
 
 		it("warns for trip of 200 days with continuity-risk", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 2));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 250)),
-				formatDate(subDays(TODAY, 50))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 250)), formatDate(subDays(TODAY, 50)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.hasWarnings).toBe(true);
@@ -186,11 +166,7 @@ describe("calculateUserStats", () => {
 
 		it("warns for trip of exactly 364 days with continuity-risk", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 2));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 400)),
-				formatDate(subDays(TODAY, 36))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 400)), formatDate(subDays(TODAY, 36)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.hasWarnings).toBe(true);
@@ -202,11 +178,7 @@ describe("calculateUserStats", () => {
 	describe("Residence Broken Triggers", () => {
 		it("warns for trip of exactly 365 days with residence-broken", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 2));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 400)),
-				formatDate(subDays(TODAY, 35))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 400)), formatDate(subDays(TODAY, 35)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.hasWarnings).toBe(true);
@@ -217,11 +189,7 @@ describe("calculateUserStats", () => {
 
 		it("warns for trip of 400 days with residence-broken", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 2));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 450)),
-				formatDate(subDays(TODAY, 50))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 450)), formatDate(subDays(TODAY, 50)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.hasWarnings).toBe(true);
@@ -234,11 +202,7 @@ describe("calculateUserStats", () => {
 		it("resets clock from return date for 180+ day trip", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 3));
 			const returnDate = subDays(TODAY, 100);
-			const trip = createTrip(
-				1,
-				formatDate(subDays(returnDate, 200)),
-				formatDate(returnDate)
-			);
+			const trip = createTrip(1, formatDate(subDays(returnDate, 200)), formatDate(returnDate));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			const expectedEligibilityDate = addYears(returnDate, 5);
@@ -248,11 +212,7 @@ describe("calculateUserStats", () => {
 		it("resets clock from return date for 365+ day trip", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 3));
 			const returnDate = subDays(TODAY, 50);
-			const trip = createTrip(
-				1,
-				formatDate(subDays(returnDate, 370)),
-				formatDate(returnDate)
-			);
+			const trip = createTrip(1, formatDate(subDays(returnDate, 370)), formatDate(returnDate));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			const expectedEligibilityDate = addYears(returnDate, 5);
@@ -264,16 +224,8 @@ describe("calculateUserStats", () => {
 			const olderReturnDate = subDays(TODAY, 500);
 			const newerReturnDate = subDays(TODAY, 100);
 			const trips = [
-				createTrip(
-					1,
-					formatDate(subDays(olderReturnDate, 200)),
-					formatDate(olderReturnDate)
-				),
-				createTrip(
-					2,
-					formatDate(subDays(newerReturnDate, 200)),
-					formatDate(newerReturnDate)
-				),
+				createTrip(1, formatDate(subDays(olderReturnDate, 200)), formatDate(olderReturnDate)),
+				createTrip(2, formatDate(subDays(newerReturnDate, 200)), formatDate(newerReturnDate)),
 			];
 			const stats = calculateUserStats(greenCardDate, "5-year", [trips[0], trips[1]]);
 
@@ -284,11 +236,7 @@ describe("calculateUserStats", () => {
 		it("clock reset affects physical presence calculation", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 3));
 			const returnDate = subDays(TODAY, 100);
-			const trip = createTrip(
-				1,
-				formatDate(subDays(returnDate, 200)),
-				formatDate(returnDate)
-			);
+			const trip = createTrip(1, formatDate(subDays(returnDate, 200)), formatDate(returnDate));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.physicalPresenceMet).toBe(100);
@@ -350,11 +298,7 @@ describe("calculateUserStats", () => {
 
 		it("ignores trip entirely before green card date", () => {
 			const greenCardDate = formatDate(subDays(TODAY, 100));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 200)),
-				formatDate(subDays(TODAY, 150))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 200)), formatDate(subDays(TODAY, 150)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.daysOutsideUS).toBe(0);
@@ -363,11 +307,7 @@ describe("calculateUserStats", () => {
 
 		it("handles trip with return date in future (trip in progress)", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 1));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 10)),
-				formatDate(addDays(TODAY, 10))
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 10)), formatDate(addDays(TODAY, 10)));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.daysOutsideUS).toBe(9);
@@ -375,11 +315,7 @@ describe("calculateUserStats", () => {
 
 		it("handles trip returning exactly today", () => {
 			const greenCardDate = formatDate(subYears(TODAY, 1));
-			const trip = createTrip(
-				1,
-				formatDate(subDays(TODAY, 10)),
-				formatDate(TODAY)
-			);
+			const trip = createTrip(1, formatDate(subDays(TODAY, 10)), formatDate(TODAY));
 			const stats = calculateUserStats(greenCardDate, "5-year", [trip]);
 
 			expect(stats.daysOutsideUS).toBe(9);
@@ -450,4 +386,3 @@ describe("formatDaysRemaining", () => {
 		expect(formatDaysRemaining(1095)).toBe("3 years");
 	});
 });
-

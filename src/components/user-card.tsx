@@ -1,5 +1,19 @@
 "use client";
 
+import { format, parseISO } from "date-fns";
+import {
+	Calendar,
+	ChevronDown,
+	Clock,
+	Globe,
+	MapPin,
+	Plane,
+	PlaneLanding,
+	PlaneTakeoff,
+	RotateCcw,
+	Trash2,
+} from "lucide-react";
+import { useState } from "react";
 import { AddTripModal } from "@/components/add-trip-modal";
 import { EditUserModal } from "@/components/edit-user-modal";
 import {
@@ -22,20 +36,6 @@ import { deleteUser } from "@/lib/actions/users";
 import { calculateUserStats, formatDaysRemaining } from "@/lib/calculator";
 import type { UserWithTrips } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { format, parseISO } from "date-fns";
-import {
-	Calendar,
-	ChevronDown,
-	Clock,
-	Globe,
-	MapPin,
-	Plane,
-	PlaneLanding,
-	PlaneTakeoff,
-	RotateCcw,
-	Trash2,
-} from "lucide-react";
-import { useState } from "react";
 
 interface UserCardProps {
 	user: UserWithTrips;
@@ -138,7 +138,10 @@ export function UserCard({ user }: UserCardProps) {
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}>
+				<div
+					className="grid gap-3"
+					style={{ gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))" }}
+				>
 					<StatItem
 						icon={Clock}
 						label="Days to Citizenship"
@@ -204,7 +207,7 @@ export function UserCard({ user }: UserCardProps) {
 										const tripDays = Math.ceil(
 											(parseISO(trip.returnDate).getTime() -
 												parseISO(trip.departureDate).getTime()) /
-											(1000 * 60 * 60 * 24)
+												(1000 * 60 * 60 * 24)
 										);
 										const isLast = index === user.trips.length - 1;
 										const isClockReset = tripDays >= 180;
